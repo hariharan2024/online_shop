@@ -17,6 +17,12 @@ public class InventoryController {
     @Autowired
     private InventoryService inventoryService;
 
+    @PostMapping("/add")
+    public ResponseEntity<Inventory> addInventory(@RequestBody Inventory inventory) {
+        Inventory createdInventory = inventoryService.addInventory(inventory);
+        return new ResponseEntity<>(createdInventory, HttpStatus.CREATED);
+    }
+
     @GetMapping("/{productId}")
     public Inventory getInventoryByProductId(@PathVariable Long productId) {
         return inventoryService.getInventoryByProductId(productId);

@@ -15,4 +15,8 @@ public class PriceService {
     public Price getPriceByProductId(Long productId) {
         return priceRepository.findByProductId(productId);
     }
+
+    public Price addPrice(Price price) {
+        return priceRepository.save(price);
+    }
 }

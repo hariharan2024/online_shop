@@ -33,4 +33,7 @@ public class InventoryService {
         }
     }
 
+    public Inventory addInventory(Inventory inventory) {
+        return inventoryRepository.save(inventory);
+    }
 }
