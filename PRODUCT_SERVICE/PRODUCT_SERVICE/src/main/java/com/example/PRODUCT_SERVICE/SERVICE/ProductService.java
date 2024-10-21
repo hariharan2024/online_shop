@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+
 @Service
 public class ProductService {
 
@@ -21,20 +22,21 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    // URL of the Inventory microservice
+    // URLs of the Inventory and Price microservices
     private static final String INVENTORY_API_URL = "http://localhost:8082/api/inventory/add";
-    private static final String PRICE_API_URL = "http://localhost:8081/api/price/add";
+    private static final String PRICE_API_URL = "http://localhost:8081/api/prices/add";
 
-
+    // Fetch products by category and include price and inventory from their respective microservices
     public List<Product> getProductsByCategory(String category) {
         List<Product> products = productRepository.findByCategory(category);
+
         for (Product product : products) {
-            // Fetch product price from price service
+            // Fetch product price from Price service
             String priceServiceUrl = "http://localhost:8081/api/prices/" + product.getId();
             Double price = restTemplate.getForObject(priceServiceUrl, Double.class);
             product.setPrice(price != null ? price : Double.NaN); // If no price, set NaN
 
-            // Fetch inventory from inventory service
+            // Fetch inventory from Inventory service
             String inventoryServiceUrl = "http://localhost:8082/api/inventory/" + product.getId();
             Integer inventory = restTemplate.getForObject(inventoryServiceUrl, Integer.class);
             product.setInventory(inventory != null ? inventory : -1); // If no inventory, set -1
@@ -42,19 +44,22 @@ public class ProductService {
         return products;
     }
 
-    // Add new product and its inventory to both services
+    // Add a new product and its price and inventory to the respective services
     public Product addProduct(Product product) {
         // Save product in Product DB
         Product savedProduct = productRepository.save(product);
 
-        // Create inventory object
+        // Create and send Inventory object
         Inventory inventory = new Inventory();
-        Price price=new Price();
-        inventory.setProductId(savedProduct.getId()); // Assign saved product's ID to inventory
-        inventory.setAvailableStock(savedProduct.getInventory()); // Example quantity, consider making this dynamic
-        price.setProductId(savedProduct.getId());
-        price.setPrice(savedProduct.getPrice());
-        // Call InventoryService to add inventory data
+        inventory.setProductId(savedProduct.getId());  // Assign saved product's ID to inventory
+        inventory.setAvailableStock(product.getInventory());  // Set the inventory quantity
+
+        // Create and send Price object
+        Price price = new Price();
+        price.setProductId(savedProduct.getId());  // Assign saved product's ID to price
+        price.setPrice(product.getPrice());  // Set the price
+
+        // Call Inventory Service to add inventory data
         try {
             ResponseEntity<Inventory> response = restTemplate.postForEntity(INVENTORY_API_URL, inventory, Inventory.class);
             if (response.getStatusCode() != HttpStatus.CREATED) {
@@ -63,10 +68,12 @@ public class ProductService {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Inventory service unavailable", e);
         }
+
+        // Call Price Service to add price data
         try {
-            ResponseEntity<Price> response = restTemplate.postForEntity(PRICE_API_URL,price, Price.class);
-            if (response.getStatusCode() != HttpStatus.CREATED) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to add Price");
+            ResponseEntity<Price> priceResponse = restTemplate.postForEntity(PRICE_API_URL, price, Price.class);
+            if (priceResponse.getStatusCode() != HttpStatus.CREATED) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to add price");
             }
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Price service unavailable", e);
@@ -74,7 +81,8 @@ public class ProductService {
 
         return savedProduct;
     }
-    // Update existing product
+
+    // Update an existing product
     public Product updateProduct(Long id, Product product) {
         if (!productRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");

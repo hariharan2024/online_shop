@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+
 @RestController
 @RequestMapping("/api/prices")
 public class PriceController {
@@ -15,13 +17,16 @@ public class PriceController {
     @Autowired
     private PriceService priceService;
 
+    // Get price by product ID
     @GetMapping("/{productId}")
     public Price getPriceByProductId(@PathVariable Long productId) {
         return priceService.getPriceByProductId(productId);
     }
+
+    // Add a new price for a product
     @PostMapping("/add")
     public ResponseEntity<Price> addPrice(@RequestBody Price price) {
-        Price createdInventory =priceService.addPrice(price);
-        return new ResponseEntity<>(createdInventory, HttpStatus.CREATED);
+        Price createdPrice = priceService.addPrice(price);  // Changed createdInventory to createdPrice
+        return new ResponseEntity<>(createdPrice, HttpStatus.CREATED);
     }
 }
