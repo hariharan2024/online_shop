@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 
 @Service
@@ -22,16 +21,14 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    // URLs of the Inventory and Price microservices
+
     private static final String INVENTORY_API_URL = "http://localhost:8082/api/inventory/add";
     private static final String PRICE_API_URL = "http://localhost:8081/api/prices/add";
 
-    // Fetch products by category and include price and inventory from their respective microservices
     public List<Product> getProductsByCategory(String category) {
         List<Product> products = productRepository.findByCategory(category);
 
         for (Product product : products) {
-            // Fetch product price from Price service
             String priceServiceUrl = "http://localhost:8081/api/prices/" + product.getId();
             Double price = restTemplate.getForObject(priceServiceUrl, Double.class);
             product.setPrice(price != null ? price : Double.NaN); // If no price, set NaN
@@ -49,7 +46,6 @@ public class ProductService {
         // Save product in Product DB
         Product savedProduct = productRepository.save(product);
 
-        // Create and send Inventory object
         Inventory inventory = new Inventory();
         inventory.setProductId(savedProduct.getId());  // Assign saved product's ID to inventory
         inventory.setAvailableStock(product.getInventory());  // Set the inventory quantity
