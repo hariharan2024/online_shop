@@ -1,4 +1,4 @@
-package com.example.PRODUCT_SERVICE;
+package com.example.PRODUCT_SERVICE.Configuration;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
