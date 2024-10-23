@@ -50,7 +50,7 @@ public class ProductService {
         return restTemplate.getForObject(inventoryServiceUrl, Integer.class);
     }
 
-    // Get products by category with stock check
+    //Get products by category with stock check
     public List<Product> getProductsByCategory(String category) {
         List<Product> products = productRepository.findByCategory(category);
 
@@ -81,18 +81,25 @@ public class ProductService {
         return products;
     }
 
+//    public List<Product> getProductsByCategory(String category, String sortBy) {
+//        // Sort by inventory or price based on user selection
+//        Sort sort = Sort.by(sortBy).ascending(); // You can change to descending if needed
+//        return productRepository.findByCategory(category, sort);
+//    }
+
+
     // Add a new product and its price and inventory to respective services
     public Product addProduct(Product product) {
         // Save product in Product DB
         Product savedProduct = productRepository.save(product);
 
         Inventory inventory = new Inventory();
-        inventory.setProductId(savedProduct.getId());  // Assign saved product's ID to inventory
-        inventory.setAvailableStock(product.getInventory());  // Set the inventory quantity
+        inventory.setProductId(savedProduct.getId());
+        inventory.setAvailableStock(product.getInventory());
 
         Price price = new Price();
-        price.setProductId(savedProduct.getId());  // Assign saved product's ID to price
-        price.setPrice(product.getPrice());  // Set the price
+        price.setProductId(savedProduct.getId());
+        price.setPrice(product.getPrice());
 
         // Call Inventory Service to add inventory data
         try {
@@ -178,6 +185,10 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
+    // Fetch products by price and available inventory
+    public List<Product> getProductsByPriceAndInventory(Double maxPrice, Integer minInventory) {
+        return productRepository.findByPriceAndInventory(maxPrice, minInventory);
 
+    }
 
 }

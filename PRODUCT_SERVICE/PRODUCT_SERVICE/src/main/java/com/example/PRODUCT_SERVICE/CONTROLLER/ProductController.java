@@ -27,6 +27,19 @@ public class ProductController {
     public List<Product> getProductsByCategory(@PathVariable String category) {
         return productService.getProductsByCategory(category);
     }
+    // API to get products by price and inventory
+    @GetMapping("/filter")
+    public ResponseEntity<List<Product>> getProductsByPriceAndInventory(
+            @RequestParam Double maxPrice,
+            @RequestParam Integer minInventory) {
+
+        List<Product> products = productService.getProductsByPriceAndInventory(maxPrice, minInventory);
+        if (products.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(products);
+        }
+    }
 
     @PostMapping("/admin/add")
     public ResponseEntity<Product> addProduct(@RequestBody Product product) {
@@ -45,5 +58,7 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
+
+
 
 }
