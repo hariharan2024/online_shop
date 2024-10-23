@@ -23,6 +23,19 @@ public class PriceController {
         return priceService.getPriceByProductId(productId);
     }
 
+    // Update an existing price
+    @PutMapping("update/{productId}")
+    public ResponseEntity<Price> updatePrice(@PathVariable Long productId, @RequestBody Price price) {
+        Price updatedPrice = priceService.updatePrice(productId, price);
+        return ResponseEntity.ok(updatedPrice);
+    }
+
+    // Delete price by product ID
+    @DeleteMapping("delete/{productId}")
+    public ResponseEntity<Void> deletePrice(@PathVariable Long productId) {
+        priceService.deletePrice(productId);
+        return ResponseEntity.noContent().build();
+    }
     // Add a new price for a product
     @PostMapping("/add")
     public ResponseEntity<Price> addPrice(@RequestBody Price price) {

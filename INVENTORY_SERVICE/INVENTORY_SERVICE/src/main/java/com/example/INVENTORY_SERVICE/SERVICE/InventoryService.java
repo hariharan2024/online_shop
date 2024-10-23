@@ -18,12 +18,6 @@ public class InventoryService {
         return inventoryRepository.findByProductId(productId);
     }
 
-    public Inventory updateInventory(Inventory inventory) {
-        return inventoryRepository.save(inventory);
-    }
-
-
-
     public void deleteInventory(Long productId) {
         Inventory inventory = inventoryRepository.findByProductId(productId);
         if (inventory != null) {
@@ -36,4 +30,17 @@ public class InventoryService {
     public Inventory addInventory(Inventory inventory) {
         return inventoryRepository.save(inventory);
     }
+
+
+    public Inventory updateInventory(Inventory inventory) {
+        Inventory existingInventory = inventoryRepository.findByProductId(inventory.getProductId());
+        if (existingInventory == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Inventory not found for product ID: " + inventory.getProductId());
+        }
+        // Update the existing inventory with new values
+        existingInventory.setAvailableStock(inventory.getAvailableStock());
+        return inventoryRepository.save(existingInventory);
+    }
+
+
 }

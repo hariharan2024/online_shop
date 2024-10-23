@@ -28,11 +28,13 @@ public class InventoryController {
         return inventoryService.getInventoryByProductId(productId);
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<Inventory> updateInventory(@RequestBody Inventory inventory) {
+    @PutMapping("/update/{productId}")
+    public ResponseEntity<Inventory> updateInventory(@PathVariable Long productId, @RequestBody Inventory inventory) {
+        inventory.setProductId(productId); // Ensure the inventory has the correct product ID
         Inventory updatedInventory = inventoryService.updateInventory(inventory);
-        return new ResponseEntity<>(updatedInventory, HttpStatus.OK);
+        return ResponseEntity.ok(updatedInventory);
     }
+
 
     @DeleteMapping("/delete/{productId}")
     public ResponseEntity<Void> deleteInventory(@PathVariable Long productId) {

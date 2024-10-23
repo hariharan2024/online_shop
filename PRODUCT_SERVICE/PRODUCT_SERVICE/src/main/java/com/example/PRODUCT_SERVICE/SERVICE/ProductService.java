@@ -117,28 +117,67 @@ public class ProductService {
         return savedProduct;
     }
 
-    // Update an existing product only if stock is available (at least 1)
     public Product updateProduct(Long id, Product product) {
-        if (!productRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
+        // Check if the product exists
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+
+        // Update product details
+        existingProduct.setPrice(product.getPrice());
+        existingProduct.setInventory(product.getInventory());
+        Product updatedProduct = productRepository.save(existingProduct);
+
+        // Update Inventory Service
+        try {
+            String inventoryServiceUrl = "http://localhost:8082/api/inventory/update/" + id;
+            Inventory inventory = new Inventory();
+            inventory.setProductId(updatedProduct.getId());
+            inventory.setAvailableStock(updatedProduct.getInventory()); // Use updated inventory value
+            restTemplate.put(inventoryServiceUrl, inventory); // Use PUT for updates
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Inventory service unavailable", e);
         }
 
-        // Fetch current inventory to check if stock exists
-        Integer currentInventory = getInventory(id);
-        if (currentInventory != null && currentInventory <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot update product with zero stock.");
+        // Update Price Service
+        try {
+            String priceServiceUrl = "http://localhost:8081/api/prices/update/" + id;
+            Price price = new Price();
+            price.setProductId(updatedProduct.getId());
+            price.setPrice(updatedProduct.getPrice()); // Use updated price value
+            restTemplate.put(priceServiceUrl, price); // Use PUT for updates
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Price service unavailable", e);
         }
 
-        product.setId(id);
-        return productRepository.save(product);
+        return updatedProduct;
     }
 
-    // Delete product by ID
+
     public void deleteProduct(Long id) {
         if (!productRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
         }
+
+        // Delete from Inventory Service
+        try {
+            String inventoryServiceUrl = "http://localhost:8082/api/inventory/delete/" + id;
+            restTemplate.delete(inventoryServiceUrl);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Inventory service unavailable", e);
+        }
+
+        // Delete from Price Service
+        try {
+            String priceServiceUrl = "http://localhost:8081/api/prices/delete/" + id;
+            restTemplate.delete(priceServiceUrl);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Price service unavailable", e);
+        }
+
+        // Finally, delete the product from Product DB
         productRepository.deleteById(id);
     }
+
+
 
 }
