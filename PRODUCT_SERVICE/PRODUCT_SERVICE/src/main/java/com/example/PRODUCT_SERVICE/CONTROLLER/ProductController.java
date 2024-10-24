@@ -3,7 +3,6 @@ package com.example.PRODUCT_SERVICE.CONTROLLER;
 
 
 import com.example.PRODUCT_SERVICE.MODEL.Product;
-import com.example.PRODUCT_SERVICE.MODEL.Users;
 import com.example.PRODUCT_SERVICE.SERVICE.ProductService;
 import com.example.PRODUCT_SERVICE.SERVICE.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +23,9 @@ public class ProductController {
     private UserService userService;
 
     @GetMapping("/{category}")
-    public List<Product> getProductsByCategory(@PathVariable String category) {
-        return productService.getProductsByCategory(category);
+    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable String category) {
+        List<Product> products = productService.getProductsByCategory(category);
+        return new ResponseEntity<>(products, HttpStatus.OK);
     }
     // API to get products by price and inventory
     @GetMapping("/filter")
@@ -58,7 +58,6 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
-
 
 
 }

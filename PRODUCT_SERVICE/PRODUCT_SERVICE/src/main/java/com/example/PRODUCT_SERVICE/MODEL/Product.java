@@ -20,8 +20,8 @@ public class Product {
     private String description;
     private String brand;
 
-    private Double price;  // Will fetch later from Price Service
-    private Integer inventory; // Will fetch later from Inventory Service
+    private Double price;
+    private Integer inventory;
 
     public Long getId() {
         return id;

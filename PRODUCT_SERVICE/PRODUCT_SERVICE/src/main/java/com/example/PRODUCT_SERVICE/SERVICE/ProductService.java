@@ -59,7 +59,6 @@ public class ProductService {
         }
 
         for (Product product : products) {
-            // Fetch price with retry mechanism
             try {
                 Double price = getPrice(product.getId());
                 product.setPrice(price != null ? price : Double.NaN);
@@ -67,7 +66,6 @@ public class ProductService {
                 System.err.println("Failed to fetch price for product ID " + product.getId() + ": " + e.getMessage());
             }
 
-            // Fetch inventory with retry mechanism and check for stock
             try {
                 Integer inventory = getInventory(product.getId());
                 if (inventory != null && inventory <= 0) {
@@ -81,14 +79,7 @@ public class ProductService {
         return products;
     }
 
-//    public List<Product> getProductsByCategory(String category, String sortBy) {
-//        // Sort by inventory or price based on user selection
-//        Sort sort = Sort.by(sortBy).ascending(); // You can change to descending if needed
-//        return productRepository.findByCategory(category, sort);
-//    }
 
-
-    // Add a new product and its price and inventory to respective services
     public Product addProduct(Product product) {
         // Save product in Product DB
         Product savedProduct = productRepository.save(product);
